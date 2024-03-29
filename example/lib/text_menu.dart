@@ -11,7 +11,7 @@ class TextMenu extends StatelessWidget {
   final TextEditingController textController;
 
   TextMenu({
-    super.key,
+    Key? key,
     required this.element,
   })  : sliderSize = ValueNotifier(element.textSize),
         isBold = ValueNotifier(element.textIsBold),
@@ -20,7 +20,9 @@ class TextMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        _showTextInputDialog(context);
+      },
       child: StarMenu(
         params: StarMenuParameters.panel(context, columns: 1).copyWith(
           openDurationMs: 60,
@@ -35,17 +37,6 @@ class TextMenu extends StatelessWidget {
 
   List<Widget> _buildEntries(BuildContext context) {
     return [
-      SizedBox(
-        width: 250,
-        child: TextField(
-          controller: textController,
-          textAlign: TextAlign.center,
-          textAlignVertical: TextAlignVertical.center,
-          minLines: null,
-          maxLines: null,
-          onChanged: (value) => element.setText(value),
-        ),
-      ),
       Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -124,6 +115,14 @@ class TextMenu extends StatelessWidget {
       ),
     ];
   }
+
+  void _showTextInputDialog(BuildContext context) async {
+    String? newText = await showTextInputDialog(context, textController.text);
+    if (newText != null) {
+      element.setText(newText);
+      textController.text = newText;
+    }
+  }
 }
 
 class IconMenu extends StatelessWidget {
@@ -131,7 +130,7 @@ class IconMenu extends StatelessWidget {
   final String text;
 
   const IconMenu({
-    super.key,
+    Key? key,
     required this.icon,
     required this.text,
   });
@@ -156,7 +155,7 @@ class CircleWidget extends StatelessWidget {
   final Color borderColor;
 
   const CircleWidget({
-    super.key,
+    Key? key,
     this.width = 48,
     this.height = 48,
     this.backgroundColor = Colors.white,
@@ -181,4 +180,36 @@ class CircleWidget extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<String?> showTextInputDialog(
+    BuildContext context, String initialText) async {
+  TextEditingController controller = TextEditingController(text: initialText);
+
+  return showDialog<String>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Enter Text'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(controller.text);
+            },
+            child: Text('OK'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('Cancel'),
+          ),
+        ],
+      );
+    },
+  );
 }
